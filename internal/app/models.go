@@ -72,3 +72,8 @@ type Event struct {
 	LocationID            string    `csv:"location_id" json:"location_id"`
 	WaybillID             string    `csv:"waybill_id" json:"waybill_id"`
 }
+
+type RoutePart struct {
+	Scac     string `json:"scac"`
+	Junction string `json:"junction,omitempty"`
+}

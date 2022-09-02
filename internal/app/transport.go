@@ -1,6 +1,7 @@
 package app
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -49,6 +50,7 @@ func (h *HTTP) routes() {
 	h.g.GET("/waybills/:id/equipment", h.WaybillEquipment())
 	h.g.GET("/waybills/:id/events", h.WaybillEvents())
 	h.g.GET("/waybills/:id/locations", h.WaybillLocations())
+	h.g.GET("/waybills/:id/route", h.WaybillRoute())
 }
 
 func (h *HTTP) migrate() error {
@@ -195,5 +197,34 @@ func (h *HTTP) WaybillLocations() gin.HandlerFunc {
 		h.db.Raw("SELECT * FROM locations where id IN (?,?)", waybill.OriginID, waybill.DestinationID).Scan(&locations)
 
 		c.JSON(http.StatusOK, locations)
+	}
+}
+
+func (h *HTTP) WaybillRoute() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id := c.Param("id")
+		if id == "" {
+			c.JSON(400, "id not present")
+			return
+		}
+
+		var waybill Waybill
+		result := h.db.First(&waybill, id)
+		if result.Error != nil {
+			if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+				c.JSON(http.StatusNotFound, "Waybill not found")
+				return
+			}
+			c.JSON(http.StatusInternalServerError, "Internal Server Error")
+			return
+		}
+
+		var route []RoutePart
+		if err := json.Unmarshal([]byte(waybill.Routes), &route); err != nil {
+			c.JSON(http.StatusInternalServerError, "Internal Server Error")
+			return
+		}
+
+		c.JSON(http.StatusOK, route)
 	}
 }
