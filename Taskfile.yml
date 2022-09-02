@@ -1,0 +1,16 @@
+version: '3'
+
+tasks:
+  build:
+    cmds:
+      - go build -o dist/telegraph-cli cmd/cli/main.go
+      - go build -o dist/telegraph-api cmd/api/main.go
+
+  ingest:
+    deps:
+      - build
+    cmds:
+      - ./dist/telegraph-cli ingest locations
+      - ./dist/telegraph-cli ingest events
+      - ./dist/telegraph-cli ingest equipment
+      - ./dist/telegraph-cli ingest waybills
