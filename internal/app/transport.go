@@ -1,6 +1,7 @@
 package app
 
 import (
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -76,6 +77,7 @@ func (h *HTTP) Equipment() gin.HandlerFunc {
 		result := h.db.Find(&equipment)
 		if result.Error != nil {
 			c.JSON(http.StatusInternalServerError, "oops")
+			return
 		}
 		c.JSON(http.StatusOK, equipment)
 	}
@@ -87,6 +89,7 @@ func (h *HTTP) Events() gin.HandlerFunc {
 		result := h.db.Find(&events)
 		if result.Error != nil {
 			c.JSON(http.StatusInternalServerError, "oops")
+			return
 		}
 		c.JSON(http.StatusOK, events)
 	}
@@ -98,6 +101,7 @@ func (h *HTTP) Locations() gin.HandlerFunc {
 		result := h.db.Find(&locations)
 		if result.Error != nil {
 			c.JSON(http.StatusInternalServerError, "oops")
+			return
 		}
 		c.JSON(http.StatusOK, locations)
 	}
@@ -109,6 +113,7 @@ func (h *HTTP) Waybills() gin.HandlerFunc {
 		result := h.db.Find(&waybills)
 		if result.Error != nil {
 			c.JSON(http.StatusInternalServerError, "oops")
+			return
 		}
 		c.JSON(http.StatusOK, waybills)
 	}
@@ -119,12 +124,18 @@ func (h *HTTP) WaybillsByID() gin.HandlerFunc {
 		id := c.Param("id")
 		if id == "" {
 			c.JSON(400, "id not present")
+			return
 		}
 
 		var waybill Waybill
 		result := h.db.First(&waybill, id)
 		if result.Error != nil {
-			c.JSON(http.StatusInternalServerError, "oops")
+			if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+				c.JSON(http.StatusNotFound, "Waybill not found")
+				return
+			}
+			c.JSON(http.StatusInternalServerError, "Internal Server Error")
+			return
 		}
 
 		c.JSON(http.StatusOK, waybill)
@@ -136,6 +147,7 @@ func (h *HTTP) WaybillEquipment() gin.HandlerFunc {
 		id := c.Param("id")
 		if id == "" {
 			c.JSON(400, "id not present")
+			return
 		}
 
 		c.JSON(http.StatusOK, "OK")
@@ -147,6 +159,7 @@ func (h *HTTP) WaybillEvents() gin.HandlerFunc {
 		id := c.Param("id")
 		if id == "" {
 			c.JSON(400, "id not present")
+			return
 		}
 
 		c.JSON(http.StatusOK, "OK")
@@ -158,6 +171,7 @@ func (h *HTTP) WaybillLocations() gin.HandlerFunc {
 		id := c.Param("id")
 		if id == "" {
 			c.JSON(400, "id not present")
+			return
 		}
 
 		c.JSON(http.StatusOK, "OK")

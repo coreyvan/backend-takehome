@@ -4,9 +4,11 @@ import (
 	"encoding/csv"
 	"fmt"
 	"github.com/coreyvan/backend-takehome/internal/app"
+	"github.com/gocarina/gocsv"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -24,10 +26,10 @@ func NewIngester(db *gorm.DB, log *zap.Logger) *Ingester {
 }
 
 func (i *Ingester) ProcessEvents(filename string) (int, error) {
+	i.db.Exec("DROP TABLE IF EXISTS events")
 	if err := i.db.AutoMigrate(&app.Event{}); err != nil {
 		return 0, fmt.Errorf("migrating events: %w", err)
 	}
-	i.db.Exec("DELETE FROM events")
 
 	//	parse from csv
 	f, err := os.Open(filename)
@@ -56,13 +58,82 @@ func (i *Ingester) ProcessEvents(filename string) (int, error) {
 	return len(toSave), nil
 }
 func (i *Ingester) ProcessLocations(filename string) (int, error) {
-	panic("implement me")
+	i.db.Exec("DROP TABLE IF EXISTS locations")
+	if err := i.db.AutoMigrate(&app.Location{}); err != nil {
+		return 0, fmt.Errorf("migrating locations: %w", err)
+	}
+
+	//	parse from csv
+	f, err := os.Open(filename)
+	if err != nil {
+		return 0, fmt.Errorf("opening file: %w", err)
+	}
+	defer f.Close()
+
+	var toSave []app.Location
+
+	if err := gocsv.UnmarshalFile(f, &toSave); err != nil {
+		return 0, fmt.Errorf("unmarshaling file: %w", err)
+	}
+
+	i.db.Create(&toSave)
+
+	return len(toSave), nil
 }
 func (i *Ingester) ProcessEquipment(filename string) (int, error) {
-	panic("implement me")
+	i.db.Exec("DROP TABLE IF EXISTS equipment")
+	if err := i.db.AutoMigrate(&app.Equipment{}); err != nil {
+		return 0, fmt.Errorf("migrating equipment: %w", err)
+	}
+
+	//	parse from csv
+	f, err := os.Open(filename)
+	if err != nil {
+		return 0, fmt.Errorf("opening file: %w", err)
+	}
+	defer f.Close()
+
+	var toSave []app.Equipment
+
+	if err := gocsv.UnmarshalFile(f, &toSave); err != nil {
+		return 0, fmt.Errorf("unmarshaling file: %w", err)
+	}
+
+	i.db.Create(&toSave)
+
+	return len(toSave), nil
 }
 func (i *Ingester) ProcessWaybills(filename string) (int, error) {
-	panic("implement me")
+	i.db.Exec("DROP TABLE IF EXISTS waybills")
+	if err := i.db.AutoMigrate(&app.Waybill{}); err != nil {
+		return 0, fmt.Errorf("migrating waybills: %w", err)
+	}
+
+	//	parse from csv
+	f, err := os.Open(filename)
+	if err != nil {
+		return 0, fmt.Errorf("opening file: %w", err)
+	}
+	defer f.Close()
+
+	lines, err := parseCSVLines(f)
+	if err != nil {
+		return 0, fmt.Errorf("parsing waybill lines: %w", err)
+	}
+
+	var toSave []app.Waybill
+	for k, l := range lines {
+		w, err := parseWaybill(l)
+		if err != nil {
+			i.log.Sugar().Errorf("skipping line %d due to error: %v", k, err)
+			continue
+		}
+		toSave = append(toSave, *w)
+	}
+
+	i.db.Create(&toSave)
+
+	return len(toSave), nil
 }
 
 func parseCSVLines(f *os.File) ([][]string, error) {
@@ -100,5 +171,69 @@ func parseEvent(line []string) (*app.Event, error) {
 		TrainAlphaCode:        line[11],
 		LocationID:            line[12],
 		WaybillID:             line[13],
+	}, nil
+}
+
+func parseWaybill(line []string) (*app.Waybill, error) {
+	waybillDate, err := time.Parse(timeFormat, line[2])
+	if err != nil {
+		return nil, fmt.Errorf("parsing sighting date: %w", err)
+	}
+
+	createdDate, err := time.Parse(timeFormat, line[4])
+	if err != nil {
+		return nil, fmt.Errorf("parsing created date: %w", err)
+	}
+
+	billOfLadingDate, err := time.Parse(timeFormat, line[12])
+	if err != nil {
+		return nil, fmt.Errorf("parsing bill of lading date: %w", err)
+	}
+
+	equipmentWeight, err := strconv.ParseInt(line[13], 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("parsing equipment weight")
+	}
+
+	tareWeight, err := strconv.ParseInt(line[14], 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("parsing equipment weight")
+	}
+
+	allowableWeight, err := strconv.ParseInt(line[15], 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("parsing equipment weight")
+	}
+
+	dunnageWeight, err := strconv.ParseInt(line[16], 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("parsing equipment weight")
+	}
+
+	return &app.Waybill{
+		ID:                   line[0],
+		EquipmentID:          line[1],
+		WaybillDate:          waybillDate,
+		WaybillNumber:        line[3],
+		CreatedDate:          createdDate,
+		BillingRoadMarkName:  line[5],
+		WaybillSourceCode:    line[6],
+		LoadEmptyStatus:      line[7],
+		OriginMarkName:       line[8],
+		DestinationMarkName:  line[9],
+		SendingRoadMark:      line[10],
+		BillOfLadingNumber:   line[11],
+		BillOfLadingDate:     billOfLadingDate,
+		EquipmentWeight:      equipmentWeight,
+		TareWeight:           tareWeight,
+		AllowableWeight:      allowableWeight,
+		DunnageWeight:        dunnageWeight,
+		EquipmentWeightCode:  line[17],
+		CommodityCode:        line[18],
+		CommodityDescription: line[19],
+		OriginID:             line[20],
+		DestinationID:        line[21],
+		Routes:               line[22],
+		Parties:              line[23],
 	}, nil
 }
