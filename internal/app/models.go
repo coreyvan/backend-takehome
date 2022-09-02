@@ -1,15 +1,17 @@
 package app
 
-import "time"
+import (
+	"time"
+)
 
 type Equipment struct {
-	ID              string `csv:"id" json:"id"`
-	Customer        string `csv:"customer" json:"customer"`
-	Fleet           string `csv:"fleet" json:"fleet"`
-	EquipmentID     string `csv:"equipment_id" json:"equipment_id"`
-	EquipmentStatus string `csv:"equipment_status" json:"equipment_status"`
-	DateAdded       string `csv:"date_added" json:"date_added"`
-	DateRemoved     string `csv:"date_removed" json:"date_removed"`
+	ID              string    `csv:"id" json:"id"`
+	Customer        string    `csv:"customer" json:"customer"`
+	Fleet           string    `csv:"fleet" json:"fleet"`
+	EquipmentID     string    `csv:"equipment_id" json:"equipment_id"`
+	EquipmentStatus string    `csv:"equipment_status" json:"equipment_status"`
+	DateAdded       time.Time `csv:"date_added" json:"date_added"`
+	DateRemoved     time.Time `csv:"date_removed" json:"date_removed,omitempty"`
 }
 
 type Location struct {

@@ -47,8 +47,8 @@ func (h *HTTP) routes() {
 	h.g.GET("/waybills", h.Waybills())
 	h.g.GET("/waybills/:id", h.WaybillsByID())
 	h.g.GET("/waybills/:id/equipment", h.WaybillEquipment())
-	h.g.GET("/waybills/events", h.WaybillEvents())
-	h.g.GET("/waybills/locations", h.WaybillLocations())
+	h.g.GET("/waybills/:id/events", h.WaybillEvents())
+	h.g.GET("/waybills/:id/locations", h.WaybillLocations())
 }
 
 func (h *HTTP) migrate() error {
@@ -150,7 +150,10 @@ func (h *HTTP) WaybillEquipment() gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(http.StatusOK, "OK")
+		var equipment []Equipment
+		h.db.Raw("SELECT equipment.* FROM waybills JOIN equipment on waybills.equipment_id = equipment.equipment_id WHERE waybills.id = ?", id).Scan(&equipment)
+
+		c.JSON(http.StatusOK, equipment)
 	}
 }
 
@@ -162,7 +165,10 @@ func (h *HTTP) WaybillEvents() gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(http.StatusOK, "OK")
+		var events []Event
+		h.db.Where("waybill_id = ?", id).Find(&events)
+
+		c.JSON(http.StatusOK, events)
 	}
 }
 
@@ -174,6 +180,20 @@ func (h *HTTP) WaybillLocations() gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(http.StatusOK, "OK")
+		var waybill Waybill
+		result := h.db.First(&waybill, id)
+		if result.Error != nil {
+			if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+				c.JSON(http.StatusNotFound, "Waybill not found")
+				return
+			}
+			c.JSON(http.StatusInternalServerError, "Internal Server Error")
+			return
+		}
+
+		var locations []Location
+		h.db.Raw("SELECT * FROM locations where id IN (?,?)", waybill.OriginID, waybill.DestinationID).Scan(&locations)
+
+		c.JSON(http.StatusOK, locations)
 	}
 }

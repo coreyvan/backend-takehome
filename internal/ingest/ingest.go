@@ -2,6 +2,7 @@ package ingest
 
 import (
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"github.com/coreyvan/backend-takehome/internal/app"
 	"github.com/gocarina/gocsv"
@@ -12,9 +13,7 @@ import (
 	"time"
 )
 
-const (
-	timeFormat = "2006-01-02 15:04:05"
-)
+var validTimeFormats = []string{time.RFC3339, "2006-01-02 15:04:05", "2006-01-02 15:04:05.000000"}
 
 type Ingester struct {
 	db  *gorm.DB
@@ -93,10 +92,19 @@ func (i *Ingester) ProcessEquipment(filename string) (int, error) {
 	}
 	defer f.Close()
 
-	var toSave []app.Equipment
+	lines, err := parseCSVLines(f)
+	if err != nil {
+		return 0, fmt.Errorf("parsing equipment lines: %w", err)
+	}
 
-	if err := gocsv.UnmarshalFile(f, &toSave); err != nil {
-		return 0, fmt.Errorf("unmarshaling file: %w", err)
+	var toSave []app.Equipment
+	for k, l := range lines {
+		e, err := parseEquipment(l)
+		if err != nil {
+			i.log.Sugar().Errorf("skipping line %d due to error: %v", k, err)
+			continue
+		}
+		toSave = append(toSave, *e)
 	}
 
 	i.db.Create(&toSave)
@@ -146,12 +154,12 @@ func parseCSVLines(f *os.File) ([][]string, error) {
 }
 
 func parseEvent(line []string) (*app.Event, error) {
-	sightingDate, err := time.Parse(timeFormat, line[2])
+	sightingDate, err := parseTime(line[2])
 	if err != nil {
 		return nil, fmt.Errorf("parsing sighting date: %w", err)
 	}
 
-	postingDate, err := time.Parse(timeFormat, line[5])
+	postingDate, err := parseTime(line[5])
 	if err != nil {
 		return nil, fmt.Errorf("parsing sighting date: %w", err)
 	}
@@ -175,17 +183,17 @@ func parseEvent(line []string) (*app.Event, error) {
 }
 
 func parseWaybill(line []string) (*app.Waybill, error) {
-	waybillDate, err := time.Parse(timeFormat, line[2])
+	waybillDate, err := parseTime(line[2])
 	if err != nil {
 		return nil, fmt.Errorf("parsing sighting date: %w", err)
 	}
 
-	createdDate, err := time.Parse(timeFormat, line[4])
+	createdDate, err := parseTime(line[4])
 	if err != nil {
 		return nil, fmt.Errorf("parsing created date: %w", err)
 	}
 
-	billOfLadingDate, err := time.Parse(timeFormat, line[12])
+	billOfLadingDate, err := parseTime(line[12])
 	if err != nil {
 		return nil, fmt.Errorf("parsing bill of lading date: %w", err)
 	}
@@ -236,4 +244,40 @@ func parseWaybill(line []string) (*app.Waybill, error) {
 		Routes:               line[22],
 		Parties:              line[23],
 	}, nil
+}
+
+func parseEquipment(line []string) (*app.Equipment, error) {
+	dateAdded, err := parseTime(line[5])
+	if err != nil {
+		return nil, err
+	}
+
+	dateRemoved, err := parseTime(line[6])
+	if err != nil {
+		return nil, err
+	}
+
+	return &app.Equipment{
+		ID:              line[0],
+		Customer:        line[1],
+		Fleet:           line[2],
+		EquipmentID:     line[3],
+		EquipmentStatus: line[4],
+		DateAdded:       dateAdded,
+		DateRemoved:     dateRemoved,
+	}, nil
+}
+
+func parseTime(str string) (time.Time, error) {
+	if str == "" {
+		return time.Time{}, nil
+	}
+
+	for _, f := range validTimeFormats {
+		t, err := time.Parse(f, str)
+		if err == nil {
+			return t, nil
+		}
+	}
+	return time.Time{}, errors.New("could not parse string with any valid formats")
 }
