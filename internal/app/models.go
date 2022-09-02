@@ -3,28 +3,28 @@ package app
 import "time"
 
 type Equipment struct {
-	ID              string `csv:"id"`
-	Customer        string `csv:"customer"`
-	Fleet           string `csv:"fleet"`
-	EquipmentID     string `csv:"equipment_id"`
-	EquipmentStatus string `csv:"equipment_status"`
-	DateAdded       string `csv:"date_added"`
-	DateRemoved     string `csv:"date_removed"`
+	ID              string `csv:"id" json:"id"`
+	Customer        string `csv:"customer" json:"customer"`
+	Fleet           string `csv:"fleet" json:"fleet"`
+	EquipmentID     string `csv:"equipment_id" json:"equipment_id"`
+	EquipmentStatus string `csv:"equipment_status" json:"equipment_status"`
+	DateAdded       string `csv:"date_added" json:"date_added"`
+	DateRemoved     string `csv:"date_removed" json:"date_removed"`
 }
 
 type Location struct {
-	ID        string  `csv:"id"`
-	City      string  `csv:"city"`
-	CityLong  string  `csv:"city_long"`
-	Station   string  `csv:"station"`
-	FSAC      string  `csv:"fsac"`
-	SCAC      string  `csv:"scac"`
-	SPLC      string  `csv:"splc"`
-	State     string  `csv:"state"`
-	Timezone  string  `csv:"time_zone"`
-	Longitude float64 `csv:"longitude"`
-	Latitude  float64 `csv:"latitude"`
-	Country   string  `csv:"country"`
+	ID        string  `csv:"id" json:"id"`
+	City      string  `csv:"city" json:"city"`
+	CityLong  string  `csv:"city_long" json:"city_long"`
+	Station   string  `csv:"station" json:"station"`
+	FSAC      string  `csv:"fsac" json:"fsac"`
+	SCAC      string  `csv:"scac" json:"scac"`
+	SPLC      string  `csv:"splc" json:"splc"`
+	State     string  `csv:"state" json:"state"`
+	Timezone  string  `csv:"time_zone" json:"time_zone"`
+	Longitude float64 `csv:"longitude" json:"longitude"`
+	Latitude  float64 `csv:"latitude" json:"latitude"`
+	Country   string  `csv:"country" json:"country"`
 }
 
 type Waybill struct {
