@@ -77,3 +77,10 @@ type RoutePart struct {
 	Scac     string `json:"scac"`
 	Junction string `json:"junction,omitempty"`
 }
+
+type Party struct {
+	PartyTypeCode           string `json:"partyTypeCode"`
+	PartyTypeSequenceNumber int    `json:"partyTypeSequenceNumber"`
+	CifNumber               string `json:"cifNumber,omitempty"`
+	CifName                 string `json:"cifName"`
+}

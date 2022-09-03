@@ -51,6 +51,7 @@ func (h *HTTP) routes() {
 	h.g.GET("/waybills/:id/events", h.WaybillEvents())
 	h.g.GET("/waybills/:id/locations", h.WaybillLocations())
 	h.g.GET("/waybills/:id/route", h.WaybillRoute())
+	h.g.GET("/waybills/:id/parties", h.WaybillParties())
 }
 
 func (h *HTTP) migrate() error {
@@ -226,5 +227,34 @@ func (h *HTTP) WaybillRoute() gin.HandlerFunc {
 		}
 
 		c.JSON(http.StatusOK, route)
+	}
+}
+
+func (h *HTTP) WaybillParties() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id := c.Param("id")
+		if id == "" {
+			c.JSON(400, "id not present")
+			return
+		}
+
+		var waybill Waybill
+		result := h.db.First(&waybill, id)
+		if result.Error != nil {
+			if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+				c.JSON(http.StatusNotFound, "Waybill not found")
+				return
+			}
+			c.JSON(http.StatusInternalServerError, "Internal Server Error")
+			return
+		}
+
+		var parties []Party
+		if err := json.Unmarshal([]byte(waybill.Parties), &parties); err != nil {
+			c.JSON(http.StatusInternalServerError, "Internal Server Error")
+			return
+		}
+
+		c.JSON(http.StatusOK, parties)
 	}
 }
