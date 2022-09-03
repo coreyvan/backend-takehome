@@ -25,13 +25,17 @@ task api -- [PORT]
 
 Load Postman configuration stored in `telegraph.postman_collection.json` to try out calling endpoints.
 
+For filtering `Event` endpoints (`/events` or `/waybill/:id/events`) use the query param `after` with an RFC3339 timestamp. The
+API's will return any records after the provided datetime.
+
 ## Notes
 
 A couple of things worth calling out for this solution:
 
 * There is a bug dealing with null timestamps for any date fields. The combination of Go + the ORM I chose to use means
   that I wasn't able to handle null timestamps from the dataset. Any timestamp that was empty in the data set is set
-  to `time.Time{}` which is the zero value in Go. This date shows up as 0001-12-31... when calling to get data. If I were to
+  to `time.Time{}` which is the zero value in Go. This date shows up as 0001-12-31... when calling to get data. If I
+  were to
   fix this I'd use `sql.NullTime` as the data type and try and figure out the configuration in GORM to get this to
   marshal into the database appropriately.
 * I didn't add tests as 1. they were a bonus item and 2. 98% of the code is actually boilerplate provided by the web
