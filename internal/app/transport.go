@@ -8,6 +8,7 @@ import (
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"net/http"
+	"time"
 )
 
 type HTTP struct {
@@ -88,8 +89,19 @@ func (h *HTTP) Equipment() gin.HandlerFunc {
 
 func (h *HTTP) Events() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		where := h.db.Model(&Event{})
+		after := c.Query("after")
+		if after != "" {
+			t, err := time.Parse(time.RFC3339, after)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, "could not parse query param after")
+				return
+			}
+			where = where.Where("events.posting_date > ?", t)
+		}
+
 		var events []Event
-		result := h.db.Find(&events)
+		result := where.Find(&events)
 		if result.Error != nil {
 			c.JSON(http.StatusInternalServerError, "oops")
 			return
@@ -168,8 +180,19 @@ func (h *HTTP) WaybillEvents() gin.HandlerFunc {
 			return
 		}
 
+		where := h.db.Where("waybill_id = ?", id)
+		after := c.Query("after")
+		if after != "" {
+			t, err := time.Parse(time.RFC3339, after)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, "could not parse query param after")
+				return
+			}
+			where = where.Where("waybill_id = ? AND posting_date > ?", id, t)
+		}
+
 		var events []Event
-		h.db.Where("waybill_id = ?", id).Find(&events)
+		where.Find(&events)
 
 		c.JSON(http.StatusOK, events)
 	}

@@ -276,7 +276,7 @@ func parseTime(str string) (time.Time, error) {
 	for _, f := range validTimeFormats {
 		t, err := time.Parse(f, str)
 		if err == nil {
-			return t, nil
+			return t.UTC(), nil
 		}
 	}
 	return time.Time{}, errors.New("could not parse string with any valid formats")
