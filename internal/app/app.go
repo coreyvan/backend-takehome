@@ -4,6 +4,7 @@ import (
 	"go.uber.org/zap"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"os"
 )
 
 func Run(log *zap.Logger) error {
@@ -13,7 +14,8 @@ func Run(log *zap.Logger) error {
 		log.Sugar().Fatalf("opening ORM: %v", err)
 	}
 
-	srv := NewHTTP(log, 3000, db)
+	port := os.Args[1]
+	srv := NewHTTP(log, port, db)
 
 	return srv.Listen()
 }

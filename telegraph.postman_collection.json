@@ -1,0 +1,202 @@
+{
+	"info": {
+		"_postman_id": "783dc534-871c-4717-a9d4-d1af7f7df53d",
+		"name": "telegraph test",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "18693505"
+	},
+	"item": [
+		{
+			"name": "equipment",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:3000/equipment",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"equipment"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "events",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:3000/events",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"events"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "locations",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:3000/locations",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"locations"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "waybills",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:3000/waybills/1234",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"waybills",
+						"1234"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "waybill by id",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:3000/waybills/1234",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"waybills",
+						"1234"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "waybill events",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:3000/waybills/1234/events",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"waybills",
+						"1234",
+						"events"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "waybill equipment",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:3000/waybills/1234/events",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"waybills",
+						"1234",
+						"events"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "waybill route",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:3000/waybills/1234/events",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"waybills",
+						"1234",
+						"events"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "waybill parties",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:3000/waybills/1234/events",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"waybills",
+						"1234",
+						"events"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "waybill locations",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:3000/waybills/1234/events",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"waybills",
+						"1234",
+						"events"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

@@ -14,3 +14,9 @@ tasks:
       - ./dist/telegraph-cli ingest events
       - ./dist/telegraph-cli ingest equipment
       - ./dist/telegraph-cli ingest waybills
+
+  api:
+    deps:
+      - ingest
+    cmds:
+      - ./dist/telegraph-api {{.CLI_ARGS}}

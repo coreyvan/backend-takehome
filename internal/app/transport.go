@@ -12,17 +12,18 @@ import (
 )
 
 type HTTP struct {
-	host string
-	port int
+	port string
 	log  *zap.Logger
 	db   *gorm.DB
 	g    *gin.Engine
 }
 
-func NewHTTP(log *zap.Logger, port int, db *gorm.DB) *HTTP {
+func NewHTTP(log *zap.Logger, port string, db *gorm.DB) *HTTP {
 	if db == nil {
 		panic("db was nil")
 	}
+
+	gin.SetMode(gin.ReleaseMode)
 
 	return &HTTP{
 		port: port,
@@ -39,7 +40,7 @@ func (h *HTTP) Listen() error {
 		return fmt.Errorf("migrating models: %w", err)
 	}
 
-	return h.g.Run(fmt.Sprintf(":%d", h.port))
+	return h.g.Run(fmt.Sprintf(":%s", h.port))
 }
 
 func (h *HTTP) routes() {
