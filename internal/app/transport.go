@@ -81,7 +81,8 @@ func (h *HTTP) Equipment() gin.HandlerFunc {
 		var equipment []Equipment
 		result := h.db.Find(&equipment)
 		if result.Error != nil {
-			c.JSON(http.StatusInternalServerError, "oops")
+			h.log.Sugar().Errorf("finding all equipment: %v", result.Error)
+			c.JSON(http.StatusInternalServerError, "Internal server error")
 			return
 		}
 		c.JSON(http.StatusOK, equipment)
@@ -95,6 +96,7 @@ func (h *HTTP) Events() gin.HandlerFunc {
 		if after != "" {
 			t, err := time.Parse(time.RFC3339, after)
 			if err != nil {
+				h.log.Sugar().Errorf("parsing query param after: %v", err)
 				c.JSON(http.StatusBadRequest, "could not parse query param after")
 				return
 			}
@@ -104,7 +106,8 @@ func (h *HTTP) Events() gin.HandlerFunc {
 		var events []Event
 		result := where.Find(&events)
 		if result.Error != nil {
-			c.JSON(http.StatusInternalServerError, "oops")
+			h.log.Sugar().Errorf("finding events: %v", result.Error)
+			c.JSON(http.StatusInternalServerError, "Internal Server Error")
 			return
 		}
 		c.JSON(http.StatusOK, events)
@@ -116,7 +119,8 @@ func (h *HTTP) Locations() gin.HandlerFunc {
 		var locations []Location
 		result := h.db.Find(&locations)
 		if result.Error != nil {
-			c.JSON(http.StatusInternalServerError, "oops")
+			h.log.Sugar().Errorf("finding all locations: %v", result.Error)
+			c.JSON(http.StatusInternalServerError, "Internal Server Error")
 			return
 		}
 		c.JSON(http.StatusOK, locations)
@@ -128,7 +132,8 @@ func (h *HTTP) Waybills() gin.HandlerFunc {
 		var waybills []Waybill
 		result := h.db.Find(&waybills)
 		if result.Error != nil {
-			c.JSON(http.StatusInternalServerError, "oops")
+			h.log.Sugar().Errorf("finding all waybills: %v", result.Error)
+			c.JSON(http.StatusInternalServerError, "Internal Server Error")
 			return
 		}
 		c.JSON(http.StatusOK, waybills)
@@ -139,7 +144,7 @@ func (h *HTTP) WaybillsByID() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
 		if id == "" {
-			c.JSON(400, "id not present")
+			c.JSON(http.StatusBadRequest, "id not present")
 			return
 		}
 
@@ -150,6 +155,7 @@ func (h *HTTP) WaybillsByID() gin.HandlerFunc {
 				c.JSON(http.StatusNotFound, "Waybill not found")
 				return
 			}
+			h.log.Sugar().Errorf("finding waybill by id: %v", result.Error)
 			c.JSON(http.StatusInternalServerError, "Internal Server Error")
 			return
 		}
@@ -162,7 +168,7 @@ func (h *HTTP) WaybillEquipment() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
 		if id == "" {
-			c.JSON(400, "id not present")
+			c.JSON(http.StatusBadRequest, "id not present")
 			return
 		}
 
@@ -177,7 +183,7 @@ func (h *HTTP) WaybillEvents() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
 		if id == "" {
-			c.JSON(400, "id not present")
+			c.JSON(http.StatusBadRequest, "id not present")
 			return
 		}
 
@@ -186,6 +192,7 @@ func (h *HTTP) WaybillEvents() gin.HandlerFunc {
 		if after != "" {
 			t, err := time.Parse(time.RFC3339, after)
 			if err != nil {
+				h.log.Sugar().Errorf("parsing query param after: %v", err)
 				c.JSON(http.StatusBadRequest, "could not parse query param after")
 				return
 			}
@@ -203,7 +210,7 @@ func (h *HTTP) WaybillLocations() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
 		if id == "" {
-			c.JSON(400, "id not present")
+			c.JSON(http.StatusBadRequest, "id not present")
 			return
 		}
 
@@ -214,6 +221,7 @@ func (h *HTTP) WaybillLocations() gin.HandlerFunc {
 				c.JSON(http.StatusNotFound, "Waybill not found")
 				return
 			}
+			h.log.Sugar().Errorf("finding waybill by id: %v", result.Error)
 			c.JSON(http.StatusInternalServerError, "Internal Server Error")
 			return
 		}
@@ -229,7 +237,7 @@ func (h *HTTP) WaybillRoute() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
 		if id == "" {
-			c.JSON(400, "id not present")
+			c.JSON(http.StatusBadRequest, "id not present")
 			return
 		}
 
@@ -240,12 +248,14 @@ func (h *HTTP) WaybillRoute() gin.HandlerFunc {
 				c.JSON(http.StatusNotFound, "Waybill not found")
 				return
 			}
+			h.log.Sugar().Errorf("finding waybill by id: %v", result.Error)
 			c.JSON(http.StatusInternalServerError, "Internal Server Error")
 			return
 		}
 
 		var route []RoutePart
 		if err := json.Unmarshal([]byte(waybill.Routes), &route); err != nil {
+			h.log.Sugar().Errorf("unmarshaling routes: %v", err)
 			c.JSON(http.StatusInternalServerError, "Internal Server Error")
 			return
 		}
@@ -258,7 +268,7 @@ func (h *HTTP) WaybillParties() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
 		if id == "" {
-			c.JSON(400, "id not present")
+			c.JSON(http.StatusBadRequest, "id not present")
 			return
 		}
 
@@ -269,12 +279,14 @@ func (h *HTTP) WaybillParties() gin.HandlerFunc {
 				c.JSON(http.StatusNotFound, "Waybill not found")
 				return
 			}
+			h.log.Sugar().Errorf("finding waybill by id: %v", result.Error)
 			c.JSON(http.StatusInternalServerError, "Internal Server Error")
 			return
 		}
 
 		var parties []Party
 		if err := json.Unmarshal([]byte(waybill.Parties), &parties); err != nil {
+			h.log.Sugar().Errorf("unmarshaling parties: %v", err)
 			c.JSON(http.StatusInternalServerError, "Internal Server Error")
 			return
 		}

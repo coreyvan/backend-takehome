@@ -17,5 +17,6 @@ func Run(log *zap.Logger) error {
 	port := os.Args[1]
 	srv := NewHTTP(log, port, db)
 
+	log.Sugar().Infof("🚀 server listening on port %s...", port)
 	return srv.Listen()
 }
